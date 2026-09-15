@@ -1,18 +1,8 @@
-
 import streamlit as st
 import pandas as pd
 import joblib
-import os
 
-from dotenv import load_dotenv
 from google import genai
-
-
-# ==============================
-# Load Environment Variables
-# ==============================
-
-load_dotenv()
 
 
 # ==============================
@@ -25,9 +15,13 @@ preprocessor = joblib.load("churn_preprocessor.pkl")
 
 # ==============================
 # Gemini API
+# Streamlit Cloud Secrets
 # ==============================
 
-gemini_api_key = os.getenv("GEMINI_API_KEY")
+try:
+    gemini_api_key = st.secrets["GEMINI_API_KEY"]
+except Exception:
+    gemini_api_key = None
 
 if gemini_api_key:
     client = genai.Client(api_key=gemini_api_key)
@@ -184,7 +178,7 @@ if st.button(
 
 
     # ==============================
-    # Create Customer DataFrame
+    # Customer Data
     # ==============================
 
     customer_data = pd.DataFrame({
@@ -247,7 +241,7 @@ if st.button(
 
 
     # ==============================
-    # Model Prediction
+    # Prediction
     # ==============================
 
     prediction = model.predict(
@@ -383,26 +377,28 @@ if st.button(
         # ==============================
 
         safe_summary = f"""
-        Churn probability: {probability:.2%}
-        Risk segment: {segment}
-        Prediction: {
-            "Likely to churn"
-            if prediction == 1
-            else "Unlikely to churn"
-        }
+Churn probability: {probability:.2%}
 
-        Customer features:
+Risk segment: {segment}
 
-        Age: {age}
-        Tenure: {tenure}
-        Usage Frequency: {usage_frequency}
-        Support Calls: {support_calls}
-        Payment Delay: {payment_delay}
-        Subscription Type: {subscription_type}
-        Contract Length: {contract_length}
-        Total Spend: {total_spend}
-        Last Interaction: {last_interaction}
-        """
+Prediction: {
+    "Likely to churn"
+    if prediction == 1
+    else "Unlikely to churn"
+}
+
+Customer features:
+
+Age: {age}
+Tenure: {tenure}
+Usage Frequency: {usage_frequency}
+Support Calls: {support_calls}
+Payment Delay: {payment_delay}
+Subscription Type: {subscription_type}
+Contract Length: {contract_length}
+Total Spend: {total_spend}
+Last Interaction: {last_interaction}
+"""
 
 
         # ==============================
@@ -434,7 +430,7 @@ Customer Summary:
 
 
         # ==============================
-        # Generate Gemini Explanation
+        # Gemini Response
         # ==============================
 
         try:
